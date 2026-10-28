@@ -8,34 +8,73 @@
         body { font-family: Arial, sans-serif; background: #222; color: #fff; text-align: center; padding: 20px; }
         .container { max-width: 600px; margin: auto; background: #333; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         input { width: 45px; height: 45px; font-size: 22px; text-align: center; margin: 5px; border-radius: 5px; border: none; font-weight: bold; }
+        .input-creatore { width: 200px; height: 40px; font-size: 18px; letter-spacing: 5px; }
         button { padding: 12px 24px; font-size: 16px; margin-top: 15px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; }
         button:hover { background: #218838; }
         #tentativi { margin-top: 20px; text-align: left; background: #444; padding: 15px; border-radius: 5px; max-height: 400px; overflow-y: auto; }
         .riga { padding: 8px; border-bottom: 1px solid #555; font-family: monospace; font-size: 15px; }
         .vittoria { background: #28a745; color: white; padding: 15px; border-radius: 5px; margin-top: 15px; font-size: 18px; font-weight: bold; }
+        .box-link { background: #444; padding: 15px; margin-top: 20px; border-radius: 5px; word-break: break-all; border: 1px dashed #28a745; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Mister Mind - Indovina il codice!</h2>
-        <p>Inserisci 6 numeri da 1 a 9 per indovinare la combinazione segreta.</p>
-        <div id="gioco">
-            <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
-            <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
-            <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
-            <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
-            <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
-            <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
+        <!-- SCHERMATA CREAZIONE (SOLO PER TE) -->
+        <div id="schermata-creazione" style="display: none;">
+            <h2>Pannello Creatore Mister Mind</h2>
+            <p>Inserisci una combinazione segreta di 6 cifre (numeri da 1 a 9):</p>
+            <input type="text" id="codice-input" class="input-creatore" maxlength="6" placeholder="487321" oninput="this.value = this.value.replace(/[^1-9]/g, '');">
             <br>
-            <button onclick="controlla()">Invia Tentativo</button>
+            <button onclick="generaLinkSfida()">Genera Link per gli Amici</button>
+            <div id="risultato-link"></div>
         </div>
-        <div id="messaggio-vittoria"></div>
-        <div id="tentativi"></div>
+
+        <!-- SCHERMATA GIOCO (PER I TUOI AMICI) -->
+        <div id="schermata-gioco" style="display: none;">
+            <h2>Mister Mind - Indovina il codice!</h2>
+            <p>Inserisci 6 numeri da 1 a 9 per indovinare la combinazione segreta.</p>
+            <div id="gioco">
+                <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
+                <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
+                <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
+                <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
+                <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
+                <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
+                <br>
+                <button onclick="controlla()">Invia Tentativo</button>
+            </div>
+            <div id="messaggio-vittoria"></div>
+            <div id="tentativi"></div>
+        </div>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const codiceSegreto = urlParams.get('code') || "123456"; 
+        const codiceSegreto = urlParams.get('code'); 
+
+        // Se il link non contiene un codice, mostra il pannello di creazione
+        if (!codiceSegreto) {
+            document.getElementById('schermata-creazione').style.display = 'block';
+        } else {
+            document.getElementById('schermata-gioco').style.display = 'block';
+        }
+
+        function generaLinkSfida() {
+            let cod = document.getElementById('codice-input').value;
+            if (cod.length !== 6) {
+                alert("Il codice deve essere composto esattamente da 6 numeri!");
+                return;
+            }
+            let linkBase = window.location.href.split('?')[0];
+            let linkFinale = linkBase + "?code=" + cod;
+            
+            document.getElementById('risultato-link').innerHTML = `
+                <div class="box-link">
+                    <p><b>Copia e invia questo link ai tuoi amici:</b></p>
+                    <a href="${linkFinale}" target="_blank" style="color: #28a745; font-weight: bold;">${linkFinale}</a>
+                </div>
+            `;
+        }
 
         function controlla() {
             let inputs = document.querySelectorAll('.num');
@@ -55,7 +94,6 @@
             let controllatiSoluzione = new Array(6).fill(false);
             let controllatiTentativo = new Array(6).fill(false);
 
-            // Primo controllo: rileva le posizioni esatte (Elementi esatti / Neri)
             for(let i = 0; i < 6; i++) {
                 if(tentativoArray[i] === soluzioneArray[i]) {
                     neri++;
@@ -64,7 +102,6 @@
                 }
             }
 
-            // Secondo controllo: rileva i numeri corretti fuori posto (Numeri giusti / Bianchi)
             for(let i = 0; i < 6; i++) {
                 if(!controllatiTentativo[i]) {
                     for(let j = 0; j < 6; j++) {
@@ -77,13 +114,11 @@
                 }
             }
 
-            // Aggiunge la riga nella plancia dei tentativi
             let riga = document.createElement('div');
             riga.className = 'riga';
             riga.innerHTML = `<b>${tentativo.join(' ')}</b> | Posizione Corretta: ${neri} — Posizione Errata: ${bianchi}`;
             document.getElementById('tentativi').prepend(riga);
             
-            // Verifica la condizione di vittoria totale
             if(neri === 6) {
                 document.getElementById('messaggio-vittoria').innerHTML = `<div class="vittoria">🎉 Complimenti! Hai decifrato il codice segreto!</div>`;
                 document.getElementById('gioco').style.display = 'none';
@@ -92,3 +127,4 @@
     </script>
 </body>
 </html>
+
