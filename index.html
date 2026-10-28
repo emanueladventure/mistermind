@@ -6,11 +6,13 @@
     <title>Sfida di Mastermind a 6 Cifre</title>
     <style>
         body { font-family: Arial, sans-serif; background: #222; color: #fff; text-align: center; padding: 20px; }
-        .container { max-width: 500px; margin: auto; background: #333; padding: 20px; border-radius: 10px; }
-        input { width: 40px; height: 40px; font-size: 20px; text-align: center; margin: 5px; border-radius: 5px; border: none; }
-        button { padding: 10px 20px; font-size: 16px; margin-top: 15px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; }
-        #tentativi { margin-top: 20px; text-align: left; background: #444; padding: 10px; border-radius: 5px; }
-        .riga { padding: 5px; border-bottom: 1px solid #555; }
+        .container { max-width: 600px; margin: auto; background: #333; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        input { width: 45px; height: 45px; font-size: 22px; text-align: center; margin: 5px; border-radius: 5px; border: none; font-weight: bold; }
+        button { padding: 12px 24px; font-size: 16px; margin-top: 15px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; }
+        button:hover { background: #218838; }
+        #tentativi { margin-top: 20px; text-align: left; background: #444; padding: 15px; border-radius: 5px; max-height: 400px; overflow-y: auto; }
+        .riga { padding: 8px; border-bottom: 1px solid #555; font-family: monospace; font-size: 15px; }
+        .vittoria { background: #28a745; color: white; padding: 15px; border-radius: 5px; margin-top: 15px; font-size: 18px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -18,46 +20,74 @@
         <h2>Mister Mind - Indovina il codice!</h2>
         <p>Inserisci 6 numeri da 1 a 9 per indovinare la combinazione segreta.</p>
         <div id="gioco">
-            <input type="number" min="1" max="9" class="num">
-            <input type="number" min="1" max="9" class="num">
-            <input type="number" min="1" max="9" class="num">
-            <input type="number" min="1" max="9" class="num">
-            <input type="number" min="1" max="9" class="num">
-            <input type="number" min="1" max="9" class="num">
+            <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
+            <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
+            <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
+            <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
+            <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
+            <input type="number" min="1" max="9" class="num" oninput="if(this.value.length > 1) this.value = this.value.slice(0, 1);">
             <br>
             <button onclick="controlla()">Invia Tentativo</button>
         </div>
+        <div id="messaggio-vittoria"></div>
         <div id="tentativi"></div>
     </div>
 
     <script>
-        // RECUPERA IL TUO CODICE DIRETTAMENTE DALLA PARTE FINALE DEL LINK
         const urlParams = new URLSearchParams(window.location.search);
         const codiceSegreto = urlParams.get('code') || "123456"; 
 
         function controlla() {
             let inputs = document.querySelectorAll('.num');
             let tentativo = Array.from(inputs).map(i => i.value);
-            if(tentativo.includes("")) { alert("Inserisci tutti e 6 i numeri!"); return; }
             
-            let neri = 0, bianchi = 0;
-            let copiaSegreto = codiceSegreto.split('');
-            let copiaTentativo = [...tentativo];
-
-            for(let i=0; i<6; i++) {
-                if(copiaTentativo[i] === copiaSegreto[i]) { neri++; copiaSegreto[i] = copiaTentativo[i] = null; }
+            if(tentativo.includes("") || tentativo.some(n => n < 1 || n > 9)) { 
+                alert("Inserisci tutti e 6 i numeri (valori da 1 a 9)!"); 
+                return; 
             }
-            for(let i=0; i<6; i++) {
-                if(copiaTentativo[i] !== null && copiaSegreto.includes(copiaTentativo[i])) {
-                    bianchi++; copiaSegreto[copiaSegreto.indexOf(copiaTentativo[i])] = null;
+            
+            let neri = 0;
+            let bianchi = 0;
+            
+            let soluzioneArray = codiceSegreto.split('');
+            let tentativoArray = [...tentativo];
+            
+            let controllatiSoluzione = new Array(6).fill(false);
+            let controllatiTentativo = new Array(6).fill(false);
+
+            // Primo controllo: rileva le posizioni esatte (Elementi esatti / Neri)
+            for(let i = 0; i < 6; i++) {
+                if(tentativoArray[i] === soluzioneArray[i]) {
+                    neri++;
+                    controllatiSoluzione[i] = true;
+                    controllatiTentativo[i] = true;
                 }
             }
 
+            // Secondo controllo: rileva i numeri corretti fuori posto (Numeri giusti / Bianchi)
+            for(let i = 0; i < 6; i++) {
+                if(!controllatiTentativo[i]) {
+                    for(let j = 0; j < 6; j++) {
+                        if(!controllatiSoluzione[j] && tentativoArray[i] === soluzioneArray[j]) {
+                            bianchi++;
+                            controllatiSoluzione[j] = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Aggiunge la riga nella plancia dei tentativi
             let riga = document.createElement('div');
             riga.className = 'riga';
-            riga.innerHTML = `<b>${tentativo.join(' ')}</b> | Elementi esatti (Posizione Corretta): ${neri} — Numeri giusti (Posizione Errata): ${bianchi}`;
+            riga.innerHTML = `<b>${tentativo.join(' ')}</b> | Posizione Corretta: ${neri} — Posizione Errata: ${bianchi}`;
             document.getElementById('tentativi').prepend(riga);
-            if(neri === 6) alert("Complimenti! Hai decifrato il codice!");
+            
+            // Verifica la condizione di vittoria totale
+            if(neri === 6) {
+                document.getElementById('messaggio-vittoria').innerHTML = `<div class="vittoria">🎉 Complimenti! Hai decifrato il codice segreto!</div>`;
+                document.getElementById('gioco').style.display = 'none';
+            }
         }
     </script>
 </body>
