@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sfida di Mastermind a 6 Cifre</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #222; color: #fff; text-align: center; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: #333; padding: 20px; border-radius: 10px; }
+        input { width: 40px; height: 40px; font-size: 20px; text-align: center; margin: 5px; border-radius: 5px; border: none; }
+        button { padding: 10px 20px; font-size: 16px; margin-top: 15px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 5px; }
+        #tentativi { margin-top: 20px; text-align: left; background: #444; padding: 10px; border-radius: 5px; }
+        .riga { padding: 5px; border-bottom: 1px solid #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Mister Mind - Indovina il codice!</h2>
+        <p>Inserisci 6 numeri da 1 a 9 per indovinare la combinazione segreta.</p>
+        <div id="gioco">
+            <input type="number" min="1" max="9" class="num">
+            <input type="number" min="1" max="9" class="num">
+            <input type="number" min="1" max="9" class="num">
+            <input type="number" min="1" max="9" class="num">
+            <input type="number" min="1" max="9" class="num">
+            <input type="number" min="1" max="9" class="num">
+            <br>
+            <button onclick="controlla()">Invia Tentativo</button>
+        </div>
+        <div id="tentativi"></div>
+    </div>
+
+    <script>
+        // RECUPERA IL TUO CODICE DIRETTAMENTE DALLA PARTE FINALE DEL LINK
+        const urlParams = new URLSearchParams(window.location.search);
+        const codiceSegreto = urlParams.get('code') || "123456"; 
+
+        function controlla() {
+            let inputs = document.querySelectorAll('.num');
+            let tentativo = Array.from(inputs).map(i => i.value);
+            if(tentativo.includes("")) { alert("Inserisci tutti e 6 i numeri!"); return; }
+            
+            let neri = 0, bianchi = 0;
+            let copiaSegreto = codiceSegreto.split('');
+            let copiaTentativo = [...tentativo];
+
+            for(let i=0; i<6; i++) {
+                if(copiaTentativo[i] === copiaSegreto[i]) { neri++; copiaSegreto[i] = copiaTentativo[i] = null; }
+            }
+            for(let i=0; i<6; i++) {
+                if(copiaTentativo[i] !== null && copiaSegreto.includes(copiaTentativo[i])) {
+                    bianchi++; copiaSegreto[copiaSegreto.indexOf(copiaTentativo[i])] = null;
+                }
+            }
+
+            let riga = document.createElement('div');
+            riga.className = 'riga';
+            riga.innerHTML = `<b>${tentativo.join(' ')}</b> | Elementi esatti (Posizione Corretta): ${neri} — Numeri giusti (Posizione Errata): ${bianchi}`;
+            document.getElementById('tentativi').prepend(riga);
+            if(neri === 6) alert("Complimenti! Hai decifrato il codice!");
+        }
+    </script>
+</body>
+</html>
