@@ -50,9 +50,19 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const codiceSegreto = urlParams.get('code'); 
+        const codiceCifrato = urlParams.get('room'); 
+        let codiceSegreto = "";
 
-        if (!codiceSegreto) {
+        // Se nel link c'è la stanza cifrata, la decodifica in background
+        if (codiceCifrato) {
+            try {
+                codiceSegreto = atob(codiceCifrato);
+            } catch(e) {
+                codiceSegreto = "123456";
+            }
+        }
+
+        if (!codiceCifrato || codiceSegreto.length !== 6) {
             document.getElementById('schermata-creazione').style.display = 'block';
         } else {
             document.getElementById('schermata-gioco').style.display = 'block';
@@ -60,12 +70,18 @@
 
         function generaLinkSfida() {
             let cod = document.getElementById('codice-input').value.trim();
+            if (cod.length !== 6) {
+                alert("Inserisci esattamente 6 numeri!");
+                return;
+            }
+            // Cifra il codice in Base64 per nasconderlo nell'URL
+            let codCifrato = btoa(cod);
             let linkBase = window.location.href.split('?')[0];
-            let linkFinale = linkBase + "?code=" + cod;
+            let linkFinale = linkBase + "?room=" + codCifrato;
             
             document.getElementById('risultato-link').innerHTML = `
                 <div class="box-link">
-                    <p><b>Copia e invia questo link ai tuoi amici:</b></p>
+                    <p><b>Copia e invia questo link mascherato ai tuoi amici:</b></p>
                     <a href="${linkFinale}" target="_blank" style="color: #28a745; font-weight: bold;">${linkFinale}</a>
                 </div>
             `;
